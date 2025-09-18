@@ -47,7 +47,10 @@ const LoginPage = () => {
 	}
 
 	return (
-		<div className='h-screen overflow-hidden flex'>
+		<div
+			className='h-screen max-h-screen overflow-hidden flex'
+			style={{ height: '100vh', maxHeight: '100vh', overflow: 'hidden' }}
+		>
 			{/* Left side - Background Image - Hidden on mobile */}
 			<div
 				className='hidden lg:block flex-1 bg-cover bg-center bg-no-repeat relative'
@@ -101,6 +104,7 @@ const LoginPage = () => {
 							<br />
 							thư viện
 						</h1>
+						<p className='text-amber-700 text-sm font-medium'>Quản lý sách, người dùng và mượn trả</p>
 					</div>
 
 					{/* Form */}
