@@ -1,9 +1,9 @@
-import { useAuth } from '@/stores/auth.store'
+import { useAuthStore } from '@/stores/auth.store'
 import { Navigate } from 'react-router-dom'
 
 const PublicRouter = ({ children }: { children: React.ReactNode }) => {
-	const { token } = useAuth()
-	if (token) return <Navigate to='/' />
+	const { accessToken } = useAuthStore()
+	if (accessToken) return <Navigate to='/' />
 	return <>{children}</>
 }
 

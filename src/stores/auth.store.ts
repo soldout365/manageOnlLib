@@ -1,30 +1,30 @@
-import type { AuthState, LoginResponse } from '@/types/auth.type'
+// File này VẪN CẦN và quan trọng
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { authApis } from '@/apis/auth.api'
+import type { UserType } from '@/types/user.type'
+import type { AuthState } from '@/types/auth.type'
 
-export const useAuth = create<AuthState>()(
+export const useAuthStore = create<AuthState>()(
 	persist(
 		(set) => ({
-			token: null,
-			isLoading: false,
+			accessToken: null,
+			user: null,
 
-			login: async (username, password) => {
-				set({ isLoading: true })
-				try {
-					const res: LoginResponse = await authApis.login({ username, password })
-					set({ token: res.access_token, isLoading: false })
-					console.log('Login response:', res)
-				} catch (error) {
-					set({ isLoading: false })
-					throw error
-				}
+			setToken: (token: string) => {
+				set({ accessToken: token })
 			},
-
-			logout: () => {
-				set({ token: null })
+			setUser: (user: UserType) => {
+				set({ user })
+			},
+			clearAuth: () => {
+				set({
+					accessToken: null,
+					user: null
+				})
 			}
 		}),
-		{ name: 'auth-storage' }
+		{
+			name: 'authStore'
+		}
 	)
 )

@@ -6,8 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input'
 import { Eye, EyeOff } from 'lucide-react'
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/stores/auth.store'
+import { useLogin } from '@/hooks/auth/useLogin'
 
 const loginFormSchema = z.object({
 	username: z.string().min(2, {
@@ -19,10 +18,9 @@ const loginFormSchema = z.object({
 })
 
 const LoginPage = () => {
-	const navigate = useNavigate()
 	const [showPass, setShowPass] = useState(false)
-	const [isSubmitting, setIsSubmiting] = useState(false)
-	const { login } = useAuth()
+
+	const { mutate: login, isPending, error } = useLogin()
 
 	// 1. Define your form.
 	const form = useForm<z.infer<typeof loginFormSchema>>({
@@ -35,15 +33,10 @@ const LoginPage = () => {
 
 	// 2. Define a submit handler.
 	const onSubmit = async (values: z.infer<typeof loginFormSchema>) => {
-		try {
-			setIsSubmiting(true)
-			login(values.username, values.password)
-			navigate('/')
-		} catch (error) {
-			console.log(error)
-		} finally {
-			setIsSubmiting(false)
-		}
+		login({
+			username: values.username,
+			password: values.password
+		})
 	}
 
 	return (
@@ -109,6 +102,15 @@ const LoginPage = () => {
 
 					{/* Form */}
 					<div className='p-8 pt-2 max-h-[calc(100vh-200px)] overflow-y-auto'>
+						{/* ✅ Hiển thị error message nếu có */}
+						{error && (
+							<div className='mb-4 p-3 bg-red-50 border border-red-200 rounded-lg'>
+								<p className='text-red-600 text-sm font-medium'>
+									{error.message || 'Đăng nhập thất bại'}
+								</p>
+							</div>
+						)}
+
 						<Form {...form}>
 							<form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
 								<FormField
@@ -123,7 +125,7 @@ const LoginPage = () => {
 												<Input
 													placeholder='Nhập tài khoản...'
 													{...field}
-													disabled={isSubmitting}
+													disabled={isPending}
 													className='h-12 border-amber-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 bg-white/80 backdrop-blur-sm'
 												/>
 											</FormControl>
@@ -145,14 +147,14 @@ const LoginPage = () => {
 														type={showPass ? 'text' : 'password'}
 														placeholder='Nhập mật khẩu...'
 														{...field}
-														disabled={isSubmitting}
+														disabled={isPending}
 														className='h-12 pr-12 border-amber-200 focus-visible:ring-amber-500 focus-visible:border-amber-500 bg-white/80 backdrop-blur-sm'
 													/>
 													<button
 														type='button'
 														onClick={() => setShowPass(!showPass)}
 														className='absolute right-4 top-1/2 -translate-y-1/2 text-amber-600 hover:text-amber-800 transition-colors'
-														disabled={isSubmitting}
+														disabled={isPending}
 													>
 														{showPass ? <EyeOff size={20} /> : <Eye size={20} />}
 													</button>
@@ -166,17 +168,20 @@ const LoginPage = () => {
 								{/* Submit Button */}
 								<Button
 									type='submit'
-									disabled={isSubmitting}
-									className='w-full h-12 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold transition-all duration-200 shadow-lg shadow-amber-200 rounded-xl'
+									disabled={isPending}
+									className='w-full h-12 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-semibold transition-all duration-200 shadow-lg shadow-amber-200 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed'
 								>
-									{isSubmitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+									{isPending ? 'Đang đăng nhập...' : 'Đăng nhập'}
 								</Button>
 							</form>
 						</Form>
 
 						{/* Forgot Password Link */}
 						<div className='text-right mt-6'>
-							<button className='text-sm text-amber-600 hover:text-amber-800 hover:underline transition-colors duration-200 font-medium'>
+							<button
+								className='text-sm text-amber-600 hover:text-amber-800 hover:underline transition-colors duration-200 font-medium disabled:opacity-50'
+								disabled={isPending}
+							>
 								Quên mật khẩu?
 							</button>
 						</div>
@@ -198,7 +203,7 @@ const LoginPage = () => {
 								variant='outline'
 								className='w-full h-12 border-amber-300 hover:bg-amber-50 hover:border-amber-400 transition-all duration-200 bg-white/70 backdrop-blur-sm rounded-xl'
 								onClick={() => console.log('Login with Google')}
-								disabled={isSubmitting}
+								disabled={isPending}
 							>
 								<svg className='mr-3 h-5 w-5' viewBox='0 0 24 24'>
 									<path
@@ -225,7 +230,7 @@ const LoginPage = () => {
 								type='button'
 								className='w-full h-12 bg-[#1877F2] hover:bg-[#166FE5] text-white transition-colors duration-200 rounded-xl font-medium'
 								onClick={() => console.log('Login with Facebook')}
-								disabled={isSubmitting}
+								disabled={isPending}
 							>
 								<svg className='mr-3 h-5 w-5 fill-current' viewBox='0 0 24 24'>
 									<path d='M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z' />
